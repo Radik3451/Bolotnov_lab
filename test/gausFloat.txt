@@ -1,0 +1,126 @@
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+func gaus(A [][]float64, b []float64, n int) []float64 {
+	for k := 1; k < n; k++ {
+		norm := A[k][k]
+		for i := k; i < n; i++ {
+			A[k][i] = A[k][i] / norm
+		}
+		b[k] = b[k] / norm
+		for j := k + 1; j < n; j++ {
+			A[j][k] -= A[k][k] * A[j][k]
+		}
+	}
+
+	// Обратный ход
+	x := make([]float64, n)
+	x[n-1] = b[n-1]
+	for i := n - 2; i > 0; i-- {
+		sum := b[i]
+		for j := i + 1; j < n; j++ {
+			sum -= A[i][j] * x[j]
+		}
+		x[i] = sum
+	}
+	return x
+}
+
+func dot(v []float64, w []float64) float64 {
+	sum := 0.0
+	for i := 0; i < len(v); i++ {
+		sum += v[i] * w[i]
+	}
+	return sum
+}
+
+func Residual(A [][]float64, b []float64, x []float64) ([]float64, float64) {
+	// Вычисляем вектор невязки
+	res := make([]float64, len(b))
+	for i := 0; i < len(b); i++ {
+		res[i] = b[i] - dot(A[i], x)
+	}
+
+	// Вычисляем норму вектора невязки
+	norm := 0.0
+	for i := 1; i < len(res); i++ {
+		norm += math.Pow(res[i], 2)
+	}
+	norm = math.Sqrt(norm)
+
+	return res, norm
+}
+
+func PrintArr(arr [][]float64, name string) {
+	n := len(arr)
+	fmt.Println("\n\t\t", name)
+	for i := 1; i < n; i++ {
+		for j := 1; j < n; j++ {
+			fmt.Printf("[%15.6e] ", arr[i][j])
+		}
+		fmt.Println()
+	}
+}
+
+func PrintVector(arr []float64, name string) {
+	n := len(arr)
+	fmt.Println("\n\t\t", name)
+	for i := 1; i < n; i++ {
+		fmt.Printf("[%15.6e] ", arr[i])
+		fmt.Println()
+	}
+}
+
+func PrintTriangleArr(arr [][]float64, b []float64, name string) {
+	n := len(arr) + 1
+	fmt.Println("\n\t\t", name)
+	for i := 1; i < n-1; i++ {
+		for j := 1; j < n-1; j++ {
+			fmt.Printf("[%15.6e] ", arr[i][j])
+		}
+		fmt.Printf("[%15.6e] ", b[i])
+		fmt.Println()
+	}
+}
+
+func main() {
+	// Параметры системы уравнений
+	V := 3
+	n := 6
+
+	// Создаем матрицу A и вектор B
+	A := make([][]float64, n)
+	for i := 1; i < n; i++ {
+		A[i] = make([]float64, n)
+	}
+	b := make([]float64, n)
+	for i := 1; i < n; i++ {
+		for j := 1; j < n; j++ {
+			if i == j {
+				A[i][j] = 31.0 + math.Sin(float64(i))/float64(V)
+			} else {
+				A[i][j] = 0.01*float64(V) + math.Sin(float64(i)-float64(j))
+			}
+		}
+		b[i] = 10.0 * math.Cos(float64(i)+float64(V))
+	}
+
+	PrintArr(A, "A")
+	PrintVector(b, "B")
+
+	// Решаем систему уравнений методом Гаусса
+	x := gaus(A, b, n)
+
+	PrintTriangleArr(A, b, "Трегол")
+	fmt.Println("x:", x)
+	// Вычисляем вектор невязки и норму вектора невязки
+	res, norm := Residual(A, b, x)
+
+	// Выводим решение
+	fmt.Println("Вектор невязки:", res)
+	fmt.Println("Норма вектора невязки:", norm)
+}

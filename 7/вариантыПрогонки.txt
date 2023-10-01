@@ -1,0 +1,104 @@
+// func CheckAnswer(C, B, A, D, X []Interval) []Interval {
+// 	n := len(B)
+// 	res := make([]Interval, n)
+
+// 	// Умножение матрицы на вектор решения
+// 	for i := 0; i < n; i++ {
+// 		res[i] = Multiplication(B[i], X[i])
+// 		if i > 0 {
+// 			res[i] = Addition(res[i], Multiplication(C[i-1], X[i-1]))
+// 		}
+// 		if i < n-1 {
+// 			res[i] = Addition(res[i], Multiplication(A[i], X[i+1]))
+// 		}
+// 	}
+
+// 	// Вычисление вектора невязки
+// 	for i := 0; i < n; i++ {
+// 		res[i] = Substraction(D[i], res[i])
+// 	}
+
+// 	return res
+// }
+
+// func SolveTridiagonalSystem(C, B, A, D []Interval) []Interval {
+// 	n := len(B)
+// 	alpha := make([]Interval, n)
+// 	beta := make([]Interval, n)
+// 	x := make([]Interval, n)
+
+// 	alpha[1] = A[1]
+// 	beta[1] = Division(D[0], alpha[0])
+
+// 	// Forward pass
+// 	for i := 2; i < n-1; i++ {
+// 		alpha[i] = Substraction(A[i], Multiplication(B[i-1], Division(C[i-1], alpha[i-1])))
+// 		beta[i] = Division(Substraction(D[i], Multiplication(B[i-1], beta[i-1])), alpha[i])
+// 	}
+
+// 	// Backward pass
+// 	x[n-1] = beta[n-1]
+// 	for i := n - 2; i >= 0; i-- {
+// 		x[i] = Division((Substraction(beta[i], Multiplication(B[i], x[i+1]))), alpha[i])
+// 	}
+
+// 	return x
+// }
+
+// func SolveTridiagonalSystem(C, B, A, D []Interval) []Interval {
+// 	n := len(B)
+// 	alpha := make([]Interval, n)
+// 	beta := make([]Interval, n)
+// 	x := make([]Interval, n)
+
+// 	alpha[0] = Division(C[1], NegativeInterval(B[1]))
+// 	beta[0] = Division(NegativeInterval(D[1]), NegativeInterval(B[1]))
+
+// 	// Прямой Ход
+// 	for i := 1; i < n-1; i++ {
+// 		// alpha[i] = B[i] - (A[i-1]*C[i-1])/alpha[i-1]
+// 		// alpha[i] = Substraction(B[i], Division((Multiplication(A[i-1], C[i-1])), alpha[i-1]))
+// 		alpha[i] = Division(C[i], Substraction(NegativeInterval(B[i]), Multiplication(A[i-1], alpha[i-1])))
+// 		// beta[i] = D[i] - (A[i-1]*beta[i-1])/alpha[i-1]
+// 		// beta[i] = Substraction(D[i], Division((Multiplication(A[i-1], beta[i-1])), alpha[i-1]))
+// 		beta[i] = Division(Substraction(Division(A[i-1], beta[i-1]), D[i]), Substraction(NegativeInterval(B[i]), Multiplication(A[i-1], alpha[i-1])))
+// 	}
+
+// 	// Обратный ход
+// 	x[n-1] = beta[n-1]
+// 	for i := n - 1; i > 0; i-- {
+// 		// x[i] = Division((Substraction(beta[i], Multiplication(B[i], x[i+1]))), alpha[i])
+// 		x[i-1] = Addition(Multiplication(alpha[i-1], x[i]), beta[i-1])
+// 	}
+
+// 	return x
+// }
+
+// func SolveTridiagonalSystem(C, B, A, D []Interval) []Interval {
+// 	n := len(B)
+// 	alpha := make([]Interval, n)
+// 	beta := make([]Interval, n)
+// 	x := make([]Interval, n)
+
+// 	alpha[1] = Division(C[1], NegativeInterval(B[1]))
+// 	beta[1] = Division(NegativeInterval(D[1]), NegativeInterval(B[1]))
+
+// 	// Прямой Ход
+// 	for i := 2; i < n; i++ {
+// 		// alpha[i] = B[i] - (A[i-1]*C[i-1])/alpha[i-1]
+// 		// alpha[i] = Substraction(B[i], Division((Multiplication(A[i-1], C[i-1])), alpha[i-1]))
+// 		alpha[i] = Division(C[i], Substraction(NegativeInterval(B[i]), Multiplication(A[i-1], alpha[i-1])))
+// 		// beta[i] = D[i] - (A[i-1]*beta[i-1])/alpha[i-1]
+// 		// beta[i] = Substraction(D[i], Division((Multiplication(A[i-1], beta[i-1])), alpha[i-1]))
+// 		beta[i] = Division(Substraction(Division(A[i-1], beta[i-1]), D[i]), Substraction(NegativeInterval(B[i]), Multiplication(A[i-1], alpha[i-1])))
+// 	}
+
+// 	// Обратный ход
+// 	x[n-1] = beta[n-1]
+// 	for i := n - 1; i > 0; i-- {
+// 		// x[i] = Division((Substraction(beta[i], Multiplication(B[i], x[i+1]))), alpha[i])
+// 		x[i-1] = Addition(Multiplication(alpha[i-1], x[i]), beta[i-1])
+// 	}
+
+// 	return x
+// }
