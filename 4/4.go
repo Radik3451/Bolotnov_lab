@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math"
-	"sort"
 )
 
 const V = 3
@@ -17,6 +16,18 @@ func (i Interval) Add(other Interval) Interval {
 	return Interval{i.l + other.l, i.r + other.r}
 }
 
+// Возвращает наибольшее значениее из 2-ух интервалов
+func Comparison(X, Y Interval) Interval {
+	var res Interval
+	if X.r < Y.l {
+		return Y
+	} else if X.l > Y.r {
+		return X
+	}
+
+	return res
+}
+
 func makeArr(N int) []Interval {
 	arr := make([]Interval, N)
 	for i := 1; i < N; i++ {
@@ -28,8 +39,8 @@ func makeArr(N int) []Interval {
 
 func displayIntervals(arr []Interval) {
 	fmt.Println("\nИнтервалы:")
-	for _, interval := range arr {
-		fmt.Printf("[%0.5f, %0.5f]\n", interval.l, interval.r)
+	for i := 1; i < len(arr); i++ {
+		fmt.Printf("[%15.5f, %15.5f]\n", arr[i].l, arr[i].r)
 	}
 	fmt.Println()
 }
@@ -42,12 +53,22 @@ func calculateSum(arr []Interval) Interval {
 	return sum
 }
 
+func sortSlice(arr []Interval) {
+	for i := 1; i < len(arr)-1; i++ {
+		for j := i + 1; j < len(arr); j++ {
+			if Comparison(arr[i], arr[j]) == arr[i] {
+				arr[i], arr[j] = arr[j], arr[i]
+			}
+		}
+	}
+}
+
 func main() {
 	var N int
 	fmt.Print("Введите N: ")
 	fmt.Scan(&N)
 
-	arr := makeArr(N)
+	arr := makeArr(N + 1)
 
 	// Вычисляем сумму до сортировки
 	sumBeforeSorting := calculateSum(arr)
@@ -56,11 +77,12 @@ func main() {
 	displayIntervals(arr)
 
 	// Сортируем интервалы по полю l (по левому краю каждого интервала)
-	sort.Slice(arr, func(i, j int) bool {
-		return arr[i].l < arr[j].l
-	})
+	// sort.Slice(arr, func(i, j int) bool {
+	// 	return arr[i].l < arr[j].l
+	// })
+	sortSlice(arr)
 
-	fmt.Println("Сортированные интервалы по полю l (по левому краю каждого интервала):")
+	fmt.Println("Сортированные интервалы")
 	displayIntervals(arr)
 
 	// Вычисляем сумму после сортировки

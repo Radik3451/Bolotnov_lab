@@ -181,7 +181,7 @@ func PrintVector(arr []Interval, name string) {
 func main() {
 	fmt.Println()
 	rad := 0.01
-	V := 3
+	V := 6
 	M := 8
 
 	C, B, A := CreateMatrix(rad, V, M+1)
@@ -199,7 +199,7 @@ func main() {
 	fmt.Print("\n\tНорма вектор невязки\n")
 	fmt.Printf("[%15.6e, %15.6e]\n", norm.L, norm.R)
 
-	M = 3000000
+	M = 1000000
 
 	r := 500001
 	count := 4
