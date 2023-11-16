@@ -98,8 +98,8 @@ func PrintArr(arr [][]Interval, name string, file *os.File) {
 	fmt.Fprintln(file, fmt.Sprintf("\n\t\t%s", name))
 	for i := 1; i < n; i++ {
 		for j := 1; j < n; j++ {
-			fmt.Printf("[%15.6e, %15.6e] ", arr[i][j].L, arr[i][j].R)
-			fmt.Fprint(file, fmt.Sprintf("[%15.6e, %15.6e] ", arr[i][j].L, arr[i][j].R))
+			fmt.Printf("[%15.7f, %15.7f] ", arr[i][j].L, arr[i][j].R)
+			fmt.Fprint(file, fmt.Sprintf("[%15.7f, %15.7f] ", arr[i][j].L, arr[i][j].R))
 		}
 		fmt.Println()
 		fmt.Fprintln(file)
@@ -110,10 +110,10 @@ func PrintTriangleArr(arr [][]Interval, name string, file *os.File) {
 	n := len(arr)
 	fmt.Println("\n\t\t", name)
 	fmt.Fprintln(file, fmt.Sprintf("\n\t\t%s", name))
-	for i := 1; i < n-1; i++ {
-		for j := 1; j < n; j++ {
-			fmt.Printf("[%15.6e, %15.6e] ", arr[i][j].L, arr[i][j].R)
-			fmt.Fprint(file, fmt.Sprintf("[%15.6e, %15.6e] ", arr[i][j].L, arr[i][j].R))
+	for i := 1; i < n; i++ {
+		for j := 1; j < n+1; j++ {
+			fmt.Printf("[%15.7f, %15.7f] ", arr[i][j].L, arr[i][j].R)
+			fmt.Fprint(file, fmt.Sprintf("[%15.7f, %15.7f] ", arr[i][j].L, arr[i][j].R))
 		}
 		fmt.Println()
 		fmt.Fprintln(file)
@@ -125,27 +125,27 @@ func PrintVector(arr []Interval, name string, file *os.File) {
 	fmt.Println("\n\t\t", name)
 	fmt.Fprintln(file, fmt.Sprintf("\n\t\t%s", name))
 	for i := 1; i < n; i++ {
-		fmt.Printf("[%15.6e, %15.6e] ", arr[i].L, arr[i].R)
+		fmt.Printf("[%15.3f, %15.3f] ", arr[i].L, arr[i].R)
 		fmt.Println()
-		fmt.Fprintln(file, fmt.Sprintf("[%15.6e, %15.6e] ", arr[i].L, arr[i].R))
+		fmt.Fprintln(file, fmt.Sprintf("[%15.3f, %15.3f] ", arr[i].L, arr[i].R))
+	}
+}
+
+func PrintVectorX(arr []Interval, name string, file *os.File) {
+	n := len(arr)
+	fmt.Println("\n\t\t", name)
+	fmt.Fprintln(file, fmt.Sprintf("\n\t\t%s", name))
+	for i := 1; i < n; i++ {
+		fmt.Printf("[%15.10f, %15.10f] ", arr[i].L, arr[i].R)
+		fmt.Println()
+		fmt.Fprintln(file, fmt.Sprintf("[%15.10f, %15.10f] ", arr[i].L, arr[i].R))
 	}
 }
 
 func Gaus(A [][]Interval, B []Interval) ([]Interval, [][]Interval) {
 	n := len(B)
 
-	for k := 1; k < n; k++ {
-		alpha := A[k][k]
-		for i := k; i < n; i++ {
-			A[k][i] = Division(A[k][i], alpha)
-		}
-		B[k] = Division(B[k], alpha)
-		for j := k + 1; j < n; j++ {
-			A[j][k] = Substraction(A[j][k], Multiplication(A[k][k], A[j][k]))
-		}
-	}
-
-	triangle := make([][]Interval, n+1)
+	triangle := make([][]Interval, n)
 	for i := 1; i < n; i++ {
 		triangle[i] = make([]Interval, n+1)
 		for j := 1; j < n; j++ {
@@ -154,40 +154,64 @@ func Gaus(A [][]Interval, B []Interval) ([]Interval, [][]Interval) {
 		triangle[i][n] = B[i]
 	}
 
-	// Обратный ход
-	x := make([]Interval, n)
-	x[n-1] = B[n-1]
-	for i := n - 2; i > 0; i-- {
-		x[i] = B[i]
+	for i := 1; i < n; i++ {
+		// Проверка и приведение элемента triangle[i][i] к 1 (если он не ноль).
+		if triangle[i][i].L != 0 && triangle[i][i].R != 0 {
+			pivot := triangle[i][i]
+			for j := i; j <= n; j++ {
+				triangle[i][j] = Division(triangle[i][j], pivot)
+			}
+		}
+
+		// Вычитание строки i из остальных строк.
 		for j := i + 1; j < n; j++ {
-			x[i] = Substraction(x[i], Multiplication(A[i][j], x[j]))
+			factor := triangle[j][i]
+			for k := i; k <= n; k++ {
+				triangle[j][k] = Substraction(triangle[j][k], Multiplication(factor, triangle[i][k]))
+			}
 		}
 	}
 
-	return x, triangle
+	// Обратный ход
+	solution := make([]Interval, n)
+	for i := n - 1; i >= 1; i-- {
+		solution[i] = triangle[i][n]
+		for j := i + 1; j < n; j++ {
+			solution[i] = Substraction(solution[i], Multiplication(triangle[i][j], solution[j]))
+		}
+	}
+
+	return solution, triangle
 }
 
-func CheckAnswer(triangle [][]Interval, B, X []Interval) ([]Interval, Interval) {
-	n := len(triangle)
-	res := make([]Interval, n)
+func MatrixVectorMultiply(matrix [][]Interval, vector []Interval) []Interval {
+	numRows := len(matrix)
+	numCols := len(matrix[1])
+	result := make([]Interval, numRows)
 
-	// Умножение матрицы на вектор решения
-	res[n-1] = B[n-1]
-	for i := n - 2; i > 0; i-- {
-		res[i] = B[i]
-		for j := n - 1; j < i; j-- {
-			res[i] = Substraction(res[i], Multiplication(triangle[i][j], X[i-1]))
+	for i := 1; i < numRows; i++ {
+		result[i] = Interval{}
+		for j := 1; j < numCols; j++ {
+			term := Multiplication(matrix[i][j], vector[j])
+			result[i] = Addition(result[i], term)
 		}
 	}
 
+	return result
+}
+
+func checkSolution(A [][]Interval, B []Interval, X []Interval) ([]Interval, Interval) {
+	n := len(A)
+
+	res := make([]Interval, n)
+	res = MatrixVectorMultiply(A, X)
+
 	nev := make([]Interval, n)
-	// Вычисление вектора невязки
 	for i := 1; i < n; i++ {
 		nev[i] = Substraction(B[i], res[i])
 	}
 
-	// Вычисление нормы вектора невязки
-	var norm Interval
+	norm := Interval{}
 	for i := 1; i < n; i++ {
 		norm = Addition(norm, Interval{L: math.Pow(nev[i].L, 2), R: math.Pow(nev[i].R, 2)})
 	}
@@ -215,9 +239,9 @@ func main() {
 	PrintArr(A, "Вектор А", file)
 	PrintVector(B, "Вектор B", file)
 	X, triangle := Gaus(A, B)
-	PrintVector(X, "Вектор X", file)
+	PrintVectorX(X, "Вектор X", file)
 	PrintTriangleArr(triangle, "Матрица в треугольном виде", file)
-	res, norm := CheckAnswer(A, B, X)
+	res, norm := checkSolution(A, B, X)
 	PrintVector(res, "Вектор невязки", file)
 	fmt.Print("\n\tНорма вектора невязки\n")
 	fmt.Printf("[%15.6e, %15.6e] \n", norm.L, norm.R)

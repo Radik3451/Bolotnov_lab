@@ -116,10 +116,12 @@ func SolveTridiagonalSystem(C, B, A, D []Interval) []Interval {
 
 	// Прямой Ход
 	for i := 2; i < n-1; i++ {
-		alpha[i] = Division(NegativeInterval(C[i]), Addition(B[i], Multiplication(A[i], alpha[i-1])))
-		beta[i] = Division(Substraction(D[i], Multiplication(A[i], beta[i-1])), Addition(B[i], Multiplication(A[i], alpha[i-1])))
+		// alpha[i] = Division(NegativeInterval(C[i]), Addition(B[i], Multiplication(A[i], alpha[i-1])))
+		// beta[i] = Division(Substraction(D[i], Multiplication(A[i], beta[i-1])), Addition(B[i], Multiplication(A[i], alpha[i-1])))
+		alpha[i] = Division(C[i], Substraction(NegativeInterval(B[i]), Multiplication(A[i], alpha[i-1])))
+		beta[i] = Division(Substraction(Multiplication(A[i], beta[i-1]), D[i]), Substraction(NegativeInterval(B[i]), Multiplication(A[i], alpha[i-1])))
 	}
-	beta[n-1] = Division(Substraction(D[n-1], Multiplication(A[n-1], beta[n-2])), Addition(B[n-1], Multiplication(A[n-1], alpha[n-2])))
+	beta[n-1] = Division(Substraction(Multiplication(A[n-1], beta[n-2]), D[n-1]), Substraction(NegativeInterval(B[n-1]), Multiplication(A[n-1], alpha[n-2])))
 
 	// Обратный ход
 	x[n-1] = beta[n-1]
@@ -158,6 +160,8 @@ func CheckAnswer(C, B, A, D, X []Interval) ([]Interval, Interval) {
 		norm = Addition(norm, Interval{L: math.Pow(NevVector[i].L, 2), R: math.Pow(NevVector[i].R, 2)})
 	}
 
+	norm = Interval{L: math.Pow(norm.L, (1.0 / 2.0)), R: math.Pow(norm.R, (1.0 / 2.0))}
+
 	return NevVector, norm
 }
 
@@ -181,7 +185,7 @@ func PrintVector(arr []Interval, name string) {
 func main() {
 	fmt.Println()
 	rad := 0.01
-	V := 6
+	V := 3
 	M := 8
 
 	C, B, A := CreateMatrix(rad, V, M+1)
@@ -208,7 +212,7 @@ func main() {
 	X = SolveTridiagonalSystem(C, B, A, D)
 	res, norm = CheckAnswer(C, B, A, D, X)
 
-	fmt.Print("\n\nM = 3000000\n")
+	fmt.Print("\n\nM = 1000000\n")
 	PrintVectorInRange(C, r, count, "Вектор C")
 	PrintVectorInRange(B, r, count, "Вектор B")
 	PrintVectorInRange(A, r, count, "Вектор A")
